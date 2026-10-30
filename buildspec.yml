@@ -15,9 +15,17 @@ phases:
       - node --version
       - npm --version
 
-  build:
+    build:
     commands:
-      - echo "Starting Angular build"
+      - echo "Checking package.json build script"
+      - npm pkg get scripts.build
+      - echo "Checking Angular CLI installation"
+      - npm ls @angular/cli
+      - echo "Checking ng executable"
+      - ls -l node_modules/.bin/ng
+      - echo "Checking node_modules"
+      - test -d node_modules && echo "node_modules exists" || echo "node_modules missing"
+      - echo "Running Angular build"
       - npm run build
 
   post_build:
