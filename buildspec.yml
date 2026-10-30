@@ -1,46 +1,30 @@
 
 version: 0.2
 
-env:
-  variables:
-    S3_BUCKET: "myk3demobucket"
-    CLOUDFRONT_ID: "E32VR49D4YR0FU"
-    AWS_DEFAULT_REGION: "us-east-1"
-    BUILD_FOLDER: "dist/my-angular-app"
-
 phases:
   install:
     runtime-versions:
       nodejs: 18
     commands:
-      - echo "Checking Node version"
-      - node --version
-      - npm --version
       - echo "Installing dependencies"
       - npm install --legacy-peer-deps
 
-  build:
-  commands:
-    - echo "Checking Node and NPM"
-    - node --version
-    - npm --version
-    - echo "Checking package.json"
-    - cat package.json
-    - echo "Checking Angular CLI"
-    - npm ls @angular/cli || true
-    - echo "Checking Angular executable"
-    - ls -l node_modules/.bin/ng || true
-    - echo "Starting Angular build"
-    - npm run build
-    - echo "Checking dist folder"
-    - ls -la dist/ || true
+  pre_build:
+    commands:
+      - echo "Checking Node version"
+      - node --version
+      - npm --version
 
-  
+  build:
+    commands:
+      - echo "Starting Angular build"
+      - npm run build
+
   post_build:
     commands:
       - |
         if [ "$CODEBUILD_BUILD_SUCCEEDING" = "0" ]; then
-          echo "BUILD FAILED. Skipping S3 deployment."
+          echo "BUILD FAILED. Skipping deployment."
           exit 1
         fi
       - echo "Uploading files to S3"
@@ -48,10 +32,3 @@ phases:
       - echo "Creating CloudFront invalidation"
       - aws cloudfront create-invalidation --distribution-id E32VR49D4YR0FU --paths "/*"
       - echo "Deployment completed successfully"
-
-
-artifacts:
-  files:
-    - '**/*'
-  base-directory: dist/my-angular-app
-  discard-paths: no
