@@ -6,38 +6,38 @@ phases:
     runtime-versions:
       nodejs: 18
     commands:
-      - echo "Installing dependencies"
-      - npm install --legacy-peer-deps
+      - echo "Installing project dependencies"
+      - npm install --include=dev --legacy-peer-deps
 
   pre_build:
     commands:
-      - echo "Checking Node version"
+      - echo "Checking Node and NPM"
       - node --version
       - npm --version
-
-    build:
-    commands:
-      - echo "Checking package.json build script"
-      - npm pkg get scripts.build
-      - echo "Checking Angular CLI installation"
+      - echo "Checking Angular CLI"
       - npm ls @angular/cli
-      - echo "Checking ng executable"
-      - ls -l node_modules/.bin/ng
-      - echo "Checking node_modules"
-      - test -d node_modules && echo "node_modules exists" || echo "node_modules missing"
-      - echo "Running Angular build"
-      - npm run build
+      - echo "Checking TypeScript"
+      - npm ls typescript
 
-      post_build:
+  build:
     commands:
-      - echo "Checking project folders"
-      - pwd
-      - ls -la
-      - echo "Searching for Angular build output"
-      - find . -maxdepth 5 -type f -name index.html
-      - echo "Searching for dist folders"
-      - find . -maxdepth 4 -type d -name distar-app/ s3://myk3demobucket/ --delete --region us-east-1
+      - echo "Starting Angular production build"
+      - npm run build
+      - echo "Checking generated files"
+      - ls -la dist/my-angular-app/
+      - test -f dist/my-angular-app/index.html
+
+  post_build:
+    commands:
+      - |
+        if [ "$CODEBUILD_BUILD_SUCCEEDING" = "0" ]; then
+          echo "Build failed. Deployment skipped."
+          exit 1
+        fi
+      - echo "Checking AWS identity"
+      - aws sts get-caller-identity
+      - echo "Uploading Angular files to S3"
+      - aws s3 sync dist/my-angular-app/ s3://myk3demobucket/ --delete --region us-east-1
       - echo "Creating CloudFront invalidation"
-      - aws cloudfront create-invalidation --distribution-id E32VR49D4YR0FU --paths "/*"ting CloudFront invalidation"
       - aws cloudfront create-invalidation --distribution-id E32VR49D4YR0FU --paths "/*"
       - echo "Deployment completed successfully"
