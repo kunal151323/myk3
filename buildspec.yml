@@ -26,13 +26,20 @@ phases:
       - echo "Checking build folder"
       - ls -lah dist/my-angular-app
 
+  
   post_build:
     commands:
+      - |
+        if [ "$CODEBUILD_BUILD_SUCCEEDING" = "0" ]; then
+          echo "BUILD FAILED. Skipping S3 deployment."
+          exit 1
+        fi
       - echo "Uploading files to S3"
       - aws s3 sync dist/my-angular-app/ s3://myk3demobucket/ --delete --region us-east-1
       - echo "Creating CloudFront invalidation"
       - aws cloudfront create-invalidation --distribution-id E32VR49D4YR0FU --paths "/*"
       - echo "Deployment completed successfully"
+
 
 artifacts:
   files:
