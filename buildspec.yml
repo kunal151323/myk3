@@ -16,14 +16,12 @@ phases:
       - echo "Checking Node version"
       - node --version
       - npm --version
-      - echo "Checking project files"
-      - ls -la
       - echo "Installing dependencies"
-      - npm install --verbose
+      - npm install --legacy-peer-deps
 
   build:
     commands:
-      - echo "Starting Angular build"
+      - echo "Starting Angular production build"
       - npm run build
       - echo "Checking build folder"
       - ls -lah dist/my-angular-app
@@ -35,3 +33,9 @@ phases:
       - echo "Creating CloudFront invalidation"
       - aws cloudfront create-invalidation --distribution-id E32VR49D4YR0FU --paths "/*"
       - echo "Deployment completed successfully"
+
+artifacts:
+  files:
+    - '**/*'
+  base-directory: dist/my-angular-app
+  discard-paths: no
