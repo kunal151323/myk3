@@ -10,15 +10,19 @@ env:
 
 phases:
   
+
 install:
   runtime-versions:
     nodejs: 18
   commands:
-    - echo "Checking Node and NPM versions..."
+    - echo "Checking Node version"
     - node --version
     - npm --version
-    - echo "Installing dependencies..."
-    - npm install
+    - echo "Checking project files"
+    - ls -la
+    - echo "Installing npm dependencies"
+    - npm install --verbose
+
 
 
   build:
