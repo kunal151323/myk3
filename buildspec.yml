@@ -1,0 +1,50 @@
+
+version: 0.2
+
+env:
+  variables:
+    S3_BUCKET: "myk3demobucket"
+    CLOUDFRONT_ID: "E32VR49D4YR0FU"
+    AWS_DEFAULT_REGION: "us-east-1"
+    BUILD_FOLDER: "dist/my-angular-app"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo "Installing dependencies..."
+      - |
+        if [ -f package-lock.json ]; then
+          npm ci
+        else
+          npm install
+        fi
+
+  build:
+    commands:
+      - echo "Starting Angular production build..."
+      - npm run build
+      - echo "Checking build output..."
+      - |
+        if [ ! -d "$BUILD_FOLDER" ]; then
+          echo "ERROR: Build folder not found: $BUILD_FOLDER"
+          exit 1
+        fi
+      - ls -lah "$BUILD_FOLDER"
+
+  post_build:
+    commands:
+      - echo "Deploying Angular build to S3..."
+      - aws s3 sync "$BUILD_FOLDER/" "s3://$S3_BUCKET/" --delete --region "$AWS_DEFAULT_REGION"
+
+      - echo "Creating CloudFront invalidation..."
+      - aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_ID" --paths "/*"
+
+      - echo "Deployment completed successfully!"
+
+artifacts:
+  files:
+    - '**/*'
+  base-directory: dist/my-angular-app
+  discard-paths: no
