@@ -26,18 +26,10 @@ phases:
       - echo "Checking generated files"
       - ls -la dist/my-angular-app/
       - test -f dist/my-angular-app/index.html
+      - echo "Angular build completed successfully"
 
-  post_build:
-    commands:
-      - |
-        if [ "$CODEBUILD_BUILD_SUCCEEDING" = "0" ]; then
-          echo "Build failed. Deployment skipped."
-          exit 1
-        fi
-      - echo "Checking AWS identity"
-      - aws sts get-caller-identity
-      - echo "Uploading Angular files to S3"
-      - aws s3 sync dist/my-angular-app/ s3://myk3demobucket/ --delete --region us-east-1
-      - echo "Creating CloudFront invalidation"
-      - aws cloudfront create-invalidation --distribution-id E32VR49D4YR0FU --paths "/*"
-      - echo "Deployment completed successfully"
+artifacts:
+  base-directory: dist/my-angular-app
+  files:
+    - '**/*'
+  discard-paths: no
