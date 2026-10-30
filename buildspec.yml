@@ -20,11 +20,20 @@ phases:
       - npm install --legacy-peer-deps
 
   build:
-    commands:
-      - echo "Starting Angular production build"
-      - npm run build
-      - echo "Checking build folder"
-      - ls -lah dist/my-angular-app
+  commands:
+    - echo "Checking Node and NPM"
+    - node --version
+    - npm --version
+    - echo "Checking package.json"
+    - cat package.json
+    - echo "Checking Angular CLI"
+    - npm ls @angular/cli || true
+    - echo "Checking Angular executable"
+    - ls -l node_modules/.bin/ng || true
+    - echo "Starting Angular build"
+    - npm run build
+    - echo "Checking dist folder"
+    - ls -la dist/ || true
 
   
   post_build:
