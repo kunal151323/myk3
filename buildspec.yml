@@ -28,15 +28,24 @@ phases:
       - echo "Running Angular build"
       - npm run build
 
-  post_build:
+    post_build:
     commands:
+      - echo "Checking build output"
       - |
-        if [ "$CODEBUILD_BUILD_SUCCEEDING" = "0" ]; then
-          echo "BUILD FAILED. Skipping deployment."
+        if [ ! -d "dist/my-angular-app" ]; then
+          echo "ERROR: Build output folder does not exist!"
+          echo "Available folders:"
+          ls -la
+          ls -la dist/ || true
           exit 1
         fi
+      - echo "Checking AWS identity"
+      - aws sts get-caller-identity
+      - echo "Checking S3 bucket access"
+      - aws s3 ls s3://myk3demobucket/ --region us-east-1
       - echo "Uploading files to S3"
       - aws s3 sync dist/my-angular-app/ s3://myk3demobucket/ --delete --region us-east-1
       - echo "Creating CloudFront invalidation"
+      - aws cloudfront create-invalidation --distribution-id E32VR49D4YR0FU --paths "/*"ting CloudFront invalidation"
       - aws cloudfront create-invalidation --distribution-id E32VR49D4YR0FU --paths "/*"
       - echo "Deployment completed successfully"
