@@ -1,0 +1,21 @@
+
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Checking AWS CLI"
+      - aws --version
+
+  build:
+    commands:
+      - echo "Checking AWS identity"
+      - aws sts get-caller-identity
+
+      - echo "Checking CloudFront distribution"
+      - aws cloudfront get-distribution --id E32VR49D4YR0FU
+
+      - echo "Creating CloudFront invalidation"
+      - aws cloudfront create-invalidation --distribution-id E32VR49D4YR0FU --paths "/*"
+
+      - echo "CloudFront invalidation request submitted successfully"
